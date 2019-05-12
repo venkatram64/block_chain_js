@@ -23,7 +23,8 @@ App = {
     $.getJSON("Contest.json", function(contest){
       App.contracts.Contest = TruffleContract(contest);
       App.contracts.Contest.setProvider(App.web3Provider);
-      return App.render();//App.bindEvents();
+      App.listenForEvents();
+      return App.render();
     });
   },
 
@@ -74,6 +75,20 @@ App = {
       content.show();
     }).catch(function(error){
       console.warn(error);
+    });
+  },
+
+  //Listen for events emitted from the contract
+  listenForEvents: function(){
+    App.contracts.Contest.deployed().then(function(instance){
+      instance.votedEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch(function(err, event){
+        console.log("Event triggered", event);
+        //Reload when a new vote is recorded
+        App.render();
+      });
     });
   },
 
